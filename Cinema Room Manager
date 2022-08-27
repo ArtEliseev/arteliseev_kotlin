@@ -1,0 +1,136 @@
+package cinema
+
+fun main() {
+
+    // start input
+    println("Enter the number of rows:")
+    val rows = readln().toInt()
+    println("Enter the number of seats in each row:")
+    val seats = readln().toInt()
+
+    // declaring variables for the lists and counters
+    val firstLineList = creatingFirstLine(seats)
+    val seatsLinesList = creatingMap(rows, seats)
+    val pricesList = pricesMap(rows, seats)
+    var purchasedTickets = 0
+    var currentIncome = 0
+
+    // work with input (main function)
+    do {
+        println(
+            "1. Show the seats\n" +
+                    "2. Buy a ticket\n" +
+                    "3. Statistics\n" +
+                    "0. Exit"
+        )
+
+        val input = readln()
+
+        when (input) {
+            "1" -> showSeats(firstLineList, rows, seatsLinesList)
+            "2" -> {
+                // work with the options in "Buy ticket" menu (incl. catching errors)
+                while (true) {
+                    println("Enter a row number:")
+                    val rowNum = readln().toInt() - 1
+                    println("Enter a seat number in that row:")
+                    val seatNum = readln().toInt()
+
+                    try {
+                        if (seatsLinesList[rowNum][seatNum] == "B") {
+                            println("That ticket has already been purchased!")
+                        } else {
+                            seatsLinesList[rowNum][seatNum] = "B"
+                            val price = pricesList[rowNum][seatNum]
+                            println("Ticket price: $$price")
+                            purchasedTickets++
+                            currentIncome += pricesList[rowNum][seatNum]
+                            break
+                        }
+                    } catch (e: IndexOutOfBoundsException) {
+                            println("Wrong input!")
+                        }
+                    }
+                }
+            "3" -> statistics(rows, seats, purchasedTickets, currentIncome)
+            else -> break
+        }
+    } while (input != "0")
+}
+
+// functions for creating the cinema map
+fun creatingFirstLine(seats: Int): MutableList<Int> {
+    val firstLineList: MutableList<Int> = mutableListOf()
+
+    for (i in 1..seats) {
+        firstLineList.add(i)
+    }
+    return firstLineList
+}
+
+fun creatingMap(rows: Int, seats: Int): MutableList<MutableList<String>> {
+    val seatsLinesList: MutableList<MutableList<String>> = mutableListOf()
+
+    for (j in 1..rows) {
+        seatsLinesList.add(MutableList(seats + 1) {"S"})
+        seatsLinesList[j - 1][0] = "$j"
+    }
+    return seatsLinesList
+}
+
+// function for creating the map of prices
+fun pricesMap(rows: Int, seats: Int): MutableList<MutableList<Int>> {
+    val pricesList: MutableList<MutableList<Int>> = mutableListOf()
+
+    if (rows * seats <= 60) {
+        for (k in 1..rows) {
+            pricesList.add(MutableList(seats + 1) {10})
+        }
+    } else {
+        for (l in 1..rows / 2) {
+            pricesList.add(MutableList(seats + 1) {10})
+        }
+        for (m in 1..rows % 2 + rows / 2) {
+            pricesList.add(MutableList(seats + 1) {8})
+        }
+    }
+    return pricesList
+}
+
+// function for showing the seats (1st option in main menu)
+fun showSeats(firstLineList: MutableList<Int>, rows: Int, seatsLinesList: MutableList<MutableList<String>>) {
+    println("Cinema:")
+    print("  ")
+    println(firstLineList.joinToString(" "))
+
+    for (n in 0 until rows) {
+        println(seatsLinesList[n].joinToString(" "))
+    }
+}
+
+// function for calculation of the purchased seats percent
+fun calculatePercentage(rows: Int, seats: Int, purchasedTickets: Int) {
+    val percentage = purchasedTickets.toDouble() / (rows.toDouble() * seats.toDouble()) * 100
+    val formatPercentage = "%.2f".format(percentage)
+    println("Percentage: $formatPercentage%")
+}
+
+// function for calculation of the total income
+fun calculateTotalIncome(rows: Int, seats: Int) {
+    var income: Int
+
+    if (rows * seats <= 60)
+        income = rows * seats * 10
+    else
+        income = rows / 2 * seats * 10 + (rows % 2 + rows / 2) * seats * 8
+
+    println("Total income: $$income")
+}
+
+// function for showing the statistics (3rd option in main menu)
+fun statistics(rows: Int, seats: Int, purchasedTickets: Int, currentIncome: Int) {
+    println("Number of purchased tickets: $purchasedTickets")
+    calculatePercentage(rows, seats, purchasedTickets)
+    println("Current income: $$currentIncome")
+    calculateTotalIncome(rows, seats)
+}

@@ -1,0 +1,151 @@
+package converter
+
+import java.math.BigInteger
+import java.math.BigDecimal
+import java.math.RoundingMode
+import kotlin.math.absoluteValue
+
+const val PRECISION = 5
+
+fun main() {
+
+    while (true) {
+        println("Enter two numbers in format: {source base} {target base} (To quit type /exit)")
+        val firstMenuInput = readln()
+        if (firstMenuInput == "/exit") {
+            return
+        } else {
+            val (source, target) = firstMenuInput.split(" ").map { it.toInt() }
+            while (true) {
+                println("Enter number in base $source to convert to base $target (To go back type /back)")
+                val secondMenuInput = readln()
+                if (secondMenuInput == "/back") {
+                    break
+                }
+                if (source == target) {
+                    if (secondMenuInput.contains(".")) {
+                        val (integerPart, fractionalPart) = secondMenuInput.split(".")
+                        println("Conversion result: ${integerPart.lowercase()}.${fractionalPart.lowercase().substring(0, 5)}")
+                    } else {
+                        println("Conversion result: $secondMenuInput")
+                    }
+                } else {
+                    val result = convert(secondMenuInput, source, target)
+                    println("Conversion result: $result")
+                }
+            }
+        }
+    }
+}
+
+fun convert(input: String, source: Int, target: Int): String {
+    return try {
+        if (input.contains(".")) {
+            val (integer, fractional) = input.split(".")
+            val decimalInteger = convertIntegerToDecimal(integer, source)
+            val convertedInteger = convertIntegerToTarget(decimalInteger, target)
+            val decimalFractional = convertFractionToDecimal(fractional, source)
+            val convertedFractional = convertFractionToTarget(decimalFractional, target)
+            "${convertedInteger.lowercase()}.${convertedFractional.lowercase()}"
+        } else {
+            val decimal = convertIntegerToDecimal(input, source)
+            convertIntegerToTarget(decimal, target).lowercase()
+        }
+    } catch (e: Exception) {
+        "Error. Please check the numbers and try again."
+    }
+}
+
+fun convertIntegerToDecimal(num: String, source: Int): BigInteger {
+    return when (source) {
+        10 -> {
+            num.toBigInteger()
+        }
+        0 -> {
+            BigInteger.valueOf(0)
+        }
+        else -> {
+            var result = BigInteger.valueOf(0)
+            var pow = 0
+
+            for (i in num.reversed().uppercase()) {
+                result += BigInteger.valueOf(numFromSymbol(i).toLong()) * bigIntegerPow(BigInteger(source.toString()), pow)
+                pow++
+            }
+            result
+        }
+    }
+}
+
+fun convertFractionToDecimal(num: String, source: Int): BigDecimal {
+    return when (source) {
+        10 -> {
+            num.toBigDecimal()
+        }
+        0 -> {
+            BigDecimal.valueOf(0)
+        }
+        else -> {
+            var result = BigDecimal.valueOf(0)
+            var pow = -1
+
+            for (j in num.uppercase()) {
+                result += BigDecimal.valueOf(numFromSymbol(j).toLong()) * bigDecimalPow(BigDecimal(source.toString()), pow)
+                pow--
+            }
+            result
+        }
+    }
+}
+
+fun convertIntegerToTarget(decimal: BigInteger, target: Int): String {
+    return if (target == 10) {
+        decimal.toString()
+    } else if (decimal == BigInteger.ZERO) {
+        "0"
+    } else {
+        var result = ""
+        var decimal = decimal
+        while (decimal > BigInteger.ZERO) {
+            result = numToSymbol((decimal % BigInteger(target.toString())).toInt()) + result
+            decimal /= BigInteger(target.toString())
+        }
+        result
+    }
+}
+
+fun convertFractionToTarget(fractional: BigDecimal, target: Int): String {
+    return if (target == 10) {
+        fractional.setScale(PRECISION, RoundingMode.HALF_UP).toString().substring(2)
+    } else {
+        var result = ""
+        var fractional = fractional
+        while (fractional > BigDecimal.ZERO && result.length < PRECISION) {
+            fractional *= BigDecimal(target)
+            result += numToSymbol(fractional.toInt())
+            fractional %= BigDecimal.ONE
+        }
+        result += "0".repeat(PRECISION)
+        result.substring(0, PRECISION)
+    }
+}
+
+fun bigIntegerPow(number: BigInteger, exponent: Int): BigInteger {
+    return number.pow(exponent)
+}
+
+fun bigDecimalPow(number: BigDecimal, exponent: Int): BigDecimal {
+    var result = BigDecimal.ONE.setScale(20)
+    for (i in 1..exponent.absoluteValue) result /= number
+    return result
+}
+
+fun numFromSymbol(symbol: Char): Int {
+    if (symbol in '0'..'9') return symbol.digitToInt()
+    return symbol - 'A' + 10
+}
+
+fun numToSymbol(num: Int): String {
+    if (num < 10) return num.toString()
+    return ('A'.code + num - 10).toChar().toString()
+}

@@ -1,0 +1,155 @@
+package tictactoe
+
+import java.lang.IndexOutOfBoundsException
+import java.lang.NumberFormatException
+
+fun main() {
+    // empty field
+    var cellList = mutableListOf(
+        mutableListOf(' ', ' ', ' '),
+        mutableListOf(' ', ' ', ' '),
+        mutableListOf(' ', ' ', ' ')
+    )
+    printField(cellList)
+
+    // game loop
+    while (true) {
+
+        if (!seekForWinner(cellList)) {
+            cellList = makeMoveX(cellList)
+            printField(cellList)
+        } else {
+            break
+        }
+
+        if (!seekForWinner(cellList)) {
+            cellList = makeMoveO(cellList)
+            printField(cellList)
+        } else {
+            break
+        }
+    }
+}
+
+fun printField(cells: MutableList<MutableList<Char>>) {
+    println("---------")
+    println("|" +  " " + cells[0][0] + " " + cells[0][1] + " " + cells[0][2] + " " + "|")
+    println("|" +  " " + cells[1][0] + " " + cells[1][1] + " " + cells[1][2] + " " + "|")
+    println("|" +  " " + cells[2][0] + " " + cells[2][1] + " " + cells[2][2] + " " + "|")
+    println("---------")
+}
+
+fun makeMoveX(cells: MutableList<MutableList<Char>>): MutableList<MutableList<Char>> {
+    try {
+        val (x, y) = readln().split(" ").map { it.toInt() }
+        if (cells[x - 1][y - 1] == ' ') {
+            cells[x - 1][y - 1] = 'X'
+        } else {
+            println("This cell is occupied! Choose another one!")
+            makeMoveX(cells)
+        }
+    } catch (e: NumberFormatException) {
+        println("You should enter numbers!")
+        makeMoveX(cells)
+    } catch (e: IndexOutOfBoundsException) {
+        println("Coordinates should be from 1 to 3!")
+        makeMoveX(cells)
+    }
+    return cells
+}
+
+fun makeMoveO(cells: MutableList<MutableList<Char>>): MutableList<MutableList<Char>> {
+    try {
+        val (x, y) = readln().split(" ").map { it.toInt() }
+        if (cells[x - 1][y - 1] == ' ') {
+            cells[x - 1][y - 1] = 'O'
+        } else {
+            println("This cell is occupied! Choose another one!")
+            makeMoveO(cells)
+        }
+    } catch (e: NumberFormatException) {
+        println("You should enter numbers!")
+        makeMoveO(cells)
+    } catch (e: IndexOutOfBoundsException) {
+        println("Coordinates should be from 1 to 3!")
+        makeMoveO(cells)
+    }
+    return cells
+}
+
+fun seekForWinner(cells: MutableList<MutableList<Char>>): Boolean {
+
+    // win possibilities
+    var winX = 0
+    var winO = 0
+
+    if (cells[0][0] == cells[0][1] && cells[0][1] == cells[0][2] && cells[0][0] !== ' ' ||
+        cells[0][0] == cells[1][0] && cells[1][0] == cells[2][0] && cells[0][0] !== ' ' ||
+        cells[0][0] == cells[1][1] && cells[1][1] == cells[2][2] && cells[0][0] !== ' ') {
+        when (cells[0][0]) {
+            'X' -> winX++
+            'O' -> winO++
+        }
+    }
+
+    if (cells[0][2] == cells[1][2] && cells[1][2] == cells[2][2] && cells[0][2] !== ' ' ||
+        cells[0][2] == cells[1][1] && cells[1][1] == cells[2][0] && cells[0][2] !== ' ') {
+        when (cells[2][0]) {
+            'X' -> winX++
+            'O' -> winO++
+        }
+    }
+
+    if (cells[1][0] == cells[1][1] && cells[1][1] == cells[1][2] && cells[1][0] !== ' ') {
+        when (cells[1][0]) {
+            'X' -> winX++
+            'O' -> winO++
+        }
+    }
+
+    if (cells[2][0] == cells[2][1] && cells[2][1] == cells[2][2] && cells[2][0] !== ' ') {
+        when (cells[2][0]) {
+            'X' -> winX++
+            'O' -> winO++
+        }
+    }
+
+    if (cells[0][1] == cells[1][1] && cells[1][1] == cells[2][1] && cells[0][1] !== ' ') {
+        when (cells[0][1]) {
+            'X' -> winX++
+            'O' -> winO++
+        }
+    }
+
+    // calculating blank spaces for draw
+    var countBlank = 0
+
+    for (i in cells[0].indices) {
+        if (cells[0][i] == ' ') countBlank++
+    }
+
+    for (j in cells[1].indices) {
+        if (cells[1][j] == ' ') countBlank++
+    }
+
+    for (k in cells[2].indices) {
+        if (cells[2][k] == ' ') countBlank++
+    }
+
+    // calculating the result
+    return when {
+        winX == 1 && winO == 0 -> {
+            println("X wins")
+            true
+        }
+        winX == 0 && winO == 1 -> {
+            println("O wins")
+            true
+        }
+        winX == 0 && winO == 0 && countBlank == 0 -> {
+            println("Draw")
+            true
+        }
+        else -> false
+    }
+}
